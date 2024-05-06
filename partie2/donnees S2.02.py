@@ -90,3 +90,62 @@ def dijkstra(graphe, depart, arrivee):
 
 
 cheminTest = dijkstra(graphe_transforme, 1806175538, 1801848709)
+
+
+def bellman_ford(graphe, depart, arrivee):
+    # Initialisation
+    distances = {sommet: float('inf') for sommet in graphe}
+    distances[depart] = 0
+    predecesseurs = {}
+
+    # Nombre de sommets dans le graphe
+    nb_sommets = len(graphe)
+
+    # Relaxation des arêtes
+    for _ in range(nb_sommets - 1):
+        for sommet in graphe:
+            for voisin, poids in graphe[sommet].items():
+                if distances[sommet] + poids < distances[voisin]:
+                    distances[voisin] = distances[sommet] + poids
+                    predecesseurs[voisin] = sommet
+
+    # Détection de cycle négatif
+    for sommet in graphe:
+        for voisin, poids in graphe[sommet].items():
+            if distances[sommet] + poids < distances[voisin]:
+                return "Cycle négatif détecté"
+
+    # Reconstruction du chemin le plus court
+    chemin = []
+    sommet = arrivee
+    while sommet != depart:
+        chemin.insert(0, sommet)
+        sommet = predecesseurs[sommet]
+    chemin.insert(0, depart)
+
+    return chemin
+
+
+chemin = bellman_ford(graphe_transforme, 1806175538, 1801848709)
+
+
+
+def floyd_warshall(graphe, depart, arrivee):
+    # Initialisation de la matrice des distances
+    nb_sommets = len(graphe)
+    distances = {i: {j: float('inf') for j in range(nb_sommets)} for i in range(nb_sommets)}
+    for sommet in graphe:
+        distances[sommet][sommet] = 0
+        for voisin, poids in graphe[sommet].items():
+            distances[sommet][voisin] = poids
+
+    # Algorithme de Floyd-Warshall
+    for k in range(nb_sommets):
+        for i in range(nb_sommets):
+            for j in range(nb_sommets):
+                distances[i][j] = min(distances[i][j], distances[i][k] + distances[k][j])
+
+    # Retourner la distance entre le sommet de départ et le sommet d'arrivée
+    return distances[depart][arrivee]
+
+distance = floyd_warshall(graphe_transforme, 1806175538, 1801848709)
