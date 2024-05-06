@@ -40,15 +40,19 @@ for i in range(len(tableau_poids)):
 del fichier, i, j, val, ls, lst, ind 
 
 
-def transformer_graphe(graphe):
+def transformer_graphe_en_dictionnaire(graphe):
     nouveau_graphe = {}
-    for sommet, voisins in graphe.items():
-        nouveau_graphe[sommet] = {}
-        for voisin, poids in voisins:
-            nouveau_graphe[sommet][voisin] = poids
+    for sommet_str, voisins in graphe.items():
+        sommet_int = int(sommet_str)
+        nouveau_graphe[sommet_int] = {}
+        for voisin_str, poids in voisins:
+            voisin_int = int(voisin_str)
+            nouveau_graphe[sommet_int][voisin_int] = poids
     return nouveau_graphe
 
-diccDiccSuccDist = transformer_graphe(dicsuccdist)
+graphe_transforme = transformer_graphe_en_dictionnaire(dicsuccdist)
+
+
 
 
 def dijkstra(graphe, depart, arrivee):
@@ -56,7 +60,7 @@ def dijkstra(graphe, depart, arrivee):
     distances = {sommet: float('inf') for sommet in graphe}
     distances[depart] = 0
     predecesseurs = {}
-    non_traites = set(graphe)
+    non_traites = set(graphe.keys())
 
     while non_traites:
         # Sélectionner le sommet non traité avec la plus petite distance
@@ -66,7 +70,7 @@ def dijkstra(graphe, depart, arrivee):
         if sommet_courant == arrivee:
             break  # On a trouvé le chemin le plus court
 
-        for voisin, poids in graphe[sommet_courant]:
+        for voisin, poids in graphe[sommet_courant].items():  # Utiliser .items() pour itérer sur les voisins
             # Calculer la nouvelle distance
             nouvelle_distance = distances[sommet_courant] + poids
 
@@ -77,7 +81,7 @@ def dijkstra(graphe, depart, arrivee):
     # Reconstruction du chemin le plus court
     chemin = []
     sommet = arrivee
-    while sommet in predecesseurs:
+    while sommet != depart:
         chemin.insert(0, sommet)
         sommet = predecesseurs[sommet]
     chemin.insert(0, depart)
@@ -85,50 +89,4 @@ def dijkstra(graphe, depart, arrivee):
     return chemin
 
 
-
-
-
-def bellman_ford_dictionnaires(graphe, depart):
-    # Initialisation
-    distances = {sommet: float('inf') for sommet in graphe}
-    distances[depart] = 0
-    predecesseurs = {}
-    
-    # Relachement des arêtes
-    for _ in range(len(graphe) - 1):
-        for sommet in graphe:
-            for voisin in graphe[sommet]:
-                poids = graphe[sommet][voisin]
-                if distances[sommet] + poids < distances[voisin]:
-                    distances[voisin] = distances[sommet] + poids
-                    predecesseurs[voisin] = sommet
-    
-    # Détection de cycle négatif
-    for sommet in graphe:
-        for voisin in graphe[sommet]:
-            poids = graphe[sommet][voisin]
-            if distances[sommet] + poids < distances[voisin]:
-                return "Cycle négatif détecté"
-    
-    return distances, predecesseurs
-
-
-def bellman_ford_liste(liste_aretes, nombre_sommets, depart):
-    # Initialisation
-    distances = [float('inf')] * nombre_sommets
-    distances[depart] = 0
-    predecesseurs = {}
-
-    # Relaxation des arêtes
-    for _ in range(nombre_sommets - 1):
-        for u, v, poids in liste_aretes:
-            if distances[u] + poids < distances[v]:
-                distances[v] = distances[u] + poids
-                predecesseurs[v] = u
-
-    # Détection de cycle négatif
-    for u, v, poids in liste_aretes:
-        if distances[u] + poids < distances[v]:
-            return "Cycle négatif détecté"
-
-    return distances, predecesseurs
+cheminTest = dijkstra(graphe_transforme, 1806175538, 1801848709)
