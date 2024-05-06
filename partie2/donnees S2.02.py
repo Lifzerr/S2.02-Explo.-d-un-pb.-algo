@@ -40,6 +40,15 @@ for i in range(len(tableau_poids)):
 del fichier, i, j, val, ls, lst, ind 
 
 
+def transformer_graphe(graphe):
+    nouveau_graphe = {}
+    for sommet, voisins in graphe.items():
+        nouveau_graphe[sommet] = {}
+        for voisin, poids in voisins:
+            nouveau_graphe[sommet][voisin] = poids
+    return nouveau_graphe
+
+diccDiccSuccDist = transformer_graphe(dicsuccdist)
 
 
 def dijkstra(graphe, depart, arrivee):
@@ -57,9 +66,9 @@ def dijkstra(graphe, depart, arrivee):
         if sommet_courant == arrivee:
             break  # On a trouvé le chemin le plus court
 
-        for voisin in graphe[sommet_courant]:
+        for voisin, poids in graphe[sommet_courant]:
             # Calculer la nouvelle distance
-            nouvelle_distance = distances[sommet_courant] + graphe[sommet_courant][voisin]
+            nouvelle_distance = distances[sommet_courant] + poids
 
             if nouvelle_distance < distances[voisin]:
                 distances[voisin] = nouvelle_distance
@@ -74,6 +83,9 @@ def dijkstra(graphe, depart, arrivee):
     chemin.insert(0, depart)
 
     return chemin
+
+
+
 
 
 def bellman_ford_dictionnaires(graphe, depart):
