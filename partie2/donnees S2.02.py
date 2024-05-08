@@ -4,7 +4,8 @@ import numpy as np
 import os
 
 
-os.chdir("C:\\IUT\\Semestre 2\\S2.02 - Explo algorithmique d'un problème\\partie2")
+# os.chdir("C:\\IUT\\Semestre 2\\S2.02 - Explo algorithmique d'un problème\\partie2")
+os.chdir("E:\\Cours\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie2")
 
 # import dicsucc.json et dicsuccdist.json (--> dictionnaire)
 with open("dicsucc.json", "r") as fichier:
@@ -41,13 +42,16 @@ del fichier, i, j, val, ls, lst, ind
 
 
 def transformer_graphe_en_dictionnaire(graphe):
+    """ Le graphe d'origine incluait des clés en string, et nous préférons par simplicité les transformer en entier.
+        De plus, les valeurs du dictionnaire d'origine étaient des listes de listes, et nous préférons, pour manipuler, des dictionnaires.
+        Cette fonction transforme le dictionnaire dans la forme que nous le voulons"""
     nouveau_graphe = {}
+    # On itère sur les sommet (et leurs successeurs)
     for sommet_str, voisins in graphe.items():
-        sommet_int = int(sommet_str)
-        nouveau_graphe[sommet_int] = {}
-        for voisin_str, poids in voisins:
-            voisin_int = int(voisin_str)
-            nouveau_graphe[sommet_int][voisin_int] = poids
+        sommet_int = int(sommet_str)     # Transformation de la clé
+        nouveau_graphe[sommet_int] = {}  # Création du couple clé-valeur dans le nouveau dictionnaire
+        for voisin, poids in voisins:
+            nouveau_graphe[sommet_int][voisin] = poids  # Ajout dans le dictionnaire du voisins le poid de l'arc
     return nouveau_graphe
 
 graphe_transforme = transformer_graphe_en_dictionnaire(dicsuccdist)
@@ -70,10 +74,11 @@ def dijkstra(graphe, depart, arrivee):
         if sommet_courant == arrivee:
             break  # On a trouvé le chemin le plus court
 
-        for voisin, poids in graphe[sommet_courant].items():  # Utiliser .items() pour itérer sur les voisins
+        for voisin, poids in graphe[sommet_courant].items():  # On itère sur les voisins
             # Calculer la nouvelle distance
             nouvelle_distance = distances[sommet_courant] + poids
 
+            # Vérifier si la nouvele distance est meilleure
             if nouvelle_distance < distances[voisin]:
                 distances[voisin] = nouvelle_distance
                 predecesseurs[voisin] = sommet_courant
