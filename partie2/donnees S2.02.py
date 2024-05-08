@@ -41,7 +41,7 @@ for i in range(len(tableau_poids)):
 del fichier, i, j, val, ls, lst, ind 
 
 
-def transformer_graphe_en_dictionnaire(graphe):
+def transformer_graphe(graphe):
     """ Le graphe d'origine incluait des clés en string, et nous préférons par simplicité les transformer en entier.
         De plus, les valeurs du dictionnaire d'origine étaient des listes de listes, et nous préférons, pour manipuler, des dictionnaires.
         Cette fonction transforme le dictionnaire dans la forme que nous le voulons"""
@@ -54,7 +54,7 @@ def transformer_graphe_en_dictionnaire(graphe):
             nouveau_graphe[sommet_int][voisin] = poids  # Ajout dans le dictionnaire du voisins le poid de l'arc
     return nouveau_graphe
 
-graphe_transforme = transformer_graphe_en_dictionnaire(dicsuccdist)
+graphe_transforme = transformer_graphe(dicsuccdist)
 
 
 
