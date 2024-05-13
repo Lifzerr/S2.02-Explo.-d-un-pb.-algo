@@ -2,7 +2,7 @@ import json
 import pandas as pd
 import numpy as np
 import os
-import graphics
+import graphics as g 
 
 
 os.chdir("C:\\IUT\\Semestre 2\\S2.02 - Explo algorithmique d'un problème\\partie2")
@@ -43,19 +43,37 @@ del fichier, i, j, val, ls, lst, ind
 
 
 
+
+
+
+
 def affiche_graphe():
     # Création fenêtre graphique avec des dimensions adaptées à celles de l'image
     image_path = "C:\IUT\Semestre 2\S2.02 - Explo algorithmique d'un problème\partie3\CaptureOpenStreetMap2024.PNG"
-    image = graphics.Image(graphics.Point(0, 0), image_path)  # Créez une instance de l'image pour obtenir ses dimensions
+    image = g.Image(g.Point(0, 0), image_path)  # Créez une instance de l'image pour obtenir ses dimensions
     image_width = image.getWidth()
     image_height = image.getHeight()
     
 
     win_width = image_width + 20  # Ajoutez une marge de 20 pixels pour plus d'espace
     win_height = image_height + 20
+    
+    # Calcul des coordonnées
+    lat_min, lat_max = sommets['lat'].min(), sommets['lat'].max()
+    lon_min, lon_max = sommets['lon'].min(), sommets['lon'].max()
 
-    win = graphics.GraphWin("Image Display", win_width, win_height)
+    # Calculer les facteurs d'échelle pour convertir les coordonnées en x, y
+    x_scale = (lon_max - lon_min) / image_width
+    y_scale = (lat_max - lat_min) / image_height
+
+    # Convertir les coordonnées de chaque sommet en x, y
+    sommets['x'] = (sommets['lon'] - lon_min) / x_scale
+    sommets['y'] = image_height - ((sommets['lat'] - lat_min) / y_scale)
+    
+    # Créer la fenetre
+    win = g.GraphWin("Image Display", win_width, win_height)
     win.setCoords(0, 0, image_width, image_height)
+        
     
     # Permettre le redimensionnement de la fenêtre
     win.master.resizable(True, True)
@@ -63,6 +81,11 @@ def affiche_graphe():
     # Chargez et affichez l'image dans la fenêtre graphique
     image.move(image_width / 2, image_height / 2)  # Déplacez l'image au centre de la fenêtre
     image.draw(win)
+    
+    # Afficher chaque point dans la fenêtre
+    for _, row in sommets.iterrows():
+        point = g.Point(row['x'], row['y'])
+        point.draw(win)
 
     # Attendre que l'utilisateur clique pour fermer la fenêtre
     win.getMouse()
