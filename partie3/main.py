@@ -5,8 +5,9 @@ import os
 import graphics as g 
 
 
-os.chdir("C:\\IUT\\Semestre 2\\S2.02 - Explo algorithmique d'un problème\\partie2")
-# os.chdir("E:\\Cours\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie2")
+# os.chdir("C:\\IUT\\Semestre 2\\S2.02 - Explo algorithmique d'un problème\\partie3")
+# os.chdir("E:\\Cours\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie3")
+os.chdir("F:\\IUT\\1ereAnnee\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie3")
 
 # import dicsucc.json et dicsuccdist.json (--> dictionnaire)
 with open("dicsucc.json", "r") as fichier:
@@ -49,7 +50,7 @@ del fichier, i, j, val, ls, lst, ind
 
 def affiche_graphe():
     # Création fenêtre graphique avec des dimensions adaptées à celles de l'image
-    image_path = "C:\IUT\Semestre 2\S2.02 - Explo algorithmique d'un problème\partie3\CaptureOpenStreetMap2024.PNG"
+    image_path = "CaptureOpenStreetMap2024.PNG"
     image = g.Image(g.Point(0, 0), image_path)  # Créez une instance de l'image pour obtenir ses dimensions
     image_width = image.getWidth()
     image_height = image.getHeight()
