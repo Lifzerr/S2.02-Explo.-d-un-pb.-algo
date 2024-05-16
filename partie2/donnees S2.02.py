@@ -5,7 +5,7 @@ import os
 
 
 # os.chdir("C:\\IUT\\Semestre 2\\S2.02 - Explo algorithmique d'un problème\\partie2")
-os.chdir("E:\\Cours\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie2")
+# os.chdir("E:\\Cours\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie2")
 
 # import dicsucc.json et dicsuccdist.json (--> dictionnaire)
 with open("dicsucc.json", "r") as fichier:
@@ -56,7 +56,16 @@ def transformer_graphe(graphe):
 
 graphe_transforme = transformer_graphe(dicsuccdist)
 
+def reconstituer(pred, dep, arr):
+    chemin = []
+    sommet = arr
+    while sommet != dep:
+        chemin.insert(0, sommet)
+        sommet = pred[sommet]
+    chemin.insert(0, dep)
 
+    return chemin
+    
 
 
 def dijkstra(graphe, depart, arrivee):
@@ -84,20 +93,13 @@ def dijkstra(graphe, depart, arrivee):
                 predecesseurs[voisin] = sommet_courant
 
     # Reconstruction du chemin le plus court
-    chemin = []
-    sommet = arrivee
-    while sommet != depart:
-        chemin.insert(0, sommet)
-        sommet = predecesseurs[sommet]
-    chemin.insert(0, depart)
-
-    return chemin
+    return reconstituer(predecesseurs, depart, arrivee)
 
 
 cheminTest = dijkstra(graphe_transforme, 1806175538, 1801848709)
 
 
-def bellman_ford(graphe, depart, arrivee):
+def bellman(graphe, depart, arrivee):
     # Initialisation
     distances = {sommet: float('inf') for sommet in graphe}
     distances[depart] = 0
@@ -106,7 +108,7 @@ def bellman_ford(graphe, depart, arrivee):
     # Nombre de sommets dans le graphe
     nb_sommets = len(graphe)
 
-    # Relaxation des arêtes
+    # Relachement des arêtes
     for _ in range(nb_sommets - 1):
         for sommet in graphe:
             for voisin, poids in graphe[sommet].items():
@@ -121,17 +123,10 @@ def bellman_ford(graphe, depart, arrivee):
                 return "Cycle négatif détecté"
 
     # Reconstruction du chemin le plus court
-    chemin = []
-    sommet = arrivee
-    while sommet != depart:
-        chemin.insert(0, sommet)
-        sommet = predecesseurs[sommet]
-    chemin.insert(0, depart)
-
-    return chemin
+    return reconstituer(predecesseurs, depart, arrivee)
 
 
-chemin = bellman_ford(graphe_transforme, 1806175538, 1801848709)
+chemin = bellman(graphe_transforme, 1806175538, 1801848709)
 
 
 
@@ -153,4 +148,4 @@ def floyd_warshall(graphe, depart, arrivee):
     # Retourner la distance entre le sommet de départ et le sommet d'arrivée
     return distances[depart][arrivee]
 
-distance = floyd_warshall(graphe_transforme, 1806175538, 1801848709)
+# distance = floyd_warshall(graphe_transforme, 1806175538, 1801848709)
