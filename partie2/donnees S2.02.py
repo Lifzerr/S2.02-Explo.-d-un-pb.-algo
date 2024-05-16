@@ -4,6 +4,7 @@ import numpy as np
 import os
 import math
 from math import acos,asin,cos,sin,pi
+import time
 
 
 # os.chdir("C:\\IUT\\Semestre 2\\S2.02 - Explo algorithmique d'un problème\\partie2")
@@ -124,7 +125,7 @@ def dijkstra(graphe, depart, arrivee):
     return reconstituer(predecesseurs, depart, arrivee)
 
 
-cheminTest = dijkstra(graphe_transforme, 1806175538, 1801848709)
+#cheminTest = dijkstra(graphe_transforme, 1806175538, 1801848709)
 
 
 def bellman(graphe, depart, arrivee):
@@ -154,7 +155,7 @@ def bellman(graphe, depart, arrivee):
     return reconstituer(predecesseurs, depart, arrivee)
 
 
-chemin = bellman(graphe_transforme, 1806175538, 1801848709)
+#chemin = bellman(graphe_transforme, 1806175538, 1801848709)
 
 
 
@@ -163,7 +164,7 @@ def floyd_warshall(matricePonderee):
     
     # Remplissage de M0 et P0
     M = np.array(matricePonderee)
-    P = np.empty((taille, taille), dtype=int)
+    P = np.full((taille, taille), -1, dtype=int)
     
     for i in range(taille):
         for j in range(taille):
@@ -171,18 +172,23 @@ def floyd_warshall(matricePonderee):
                 P[i][j] = i
             else:
                 P[i][j] = -1  # Utilisation de -1 pour indiquer aucun prédécesseur
+    start = time.time()
     
     # Début des itérations des lignes et colonnes
     for k in range(taille):
         for i in range(taille):
-            for j in range(taille):
+            for j in range(i, taille):
                 # Relâchement
                 if M[i][k] + M[k][j] < M[i][j]:
                     M[i][j] = M[i][k] + M[k][j]
+                    M[j][i] = M[i][k] + M[k][j]
                     P[i][j] = P[k][j]
+        currentTime = time.time()
+        
+        print ("étape ", k, " terminée || temps : ", currentTime - start)
     
     return M, P
-                        
+"""                        
 (M, P) = floyd_warshall(matrice_poids)
                 
 # Sauvegarder M dans un fichier CSV
@@ -190,8 +196,25 @@ np.savetxt("M_Floyd_Warshall.csv", M, delimiter=",", fmt="%s")
 
 # Sauvegarder P dans un fichier CSV
 np.savetxt("P-Floyd_Warshall.csv", P, delimiter=",", fmt="%d")
-    
+    """
+"""
+def reconstituer_chemin(P, depart, arrivee):
+    chemin = []
+    noeud = arrivee
+    while noeud != depart:
+        chemin.insert(0, noeud)
+        noeud = P[depart][noeud]
+        if noeud == -1:
+            return None  # Aucun chemin trouvé
+    chemin.insert(0, depart)
+    return chemin
 
+chemin = reconstituer_chemin(P, depart, arrivee)
+if chemin:
+    print("Chemin trouvé :", chemin)
+else:
+    print("Aucun chemin trouvé entre", depart, "et", arrivee)
+"""
 def floyd_warshall_recherche(depart, arrivee):
     while True:
         saisie = input("Souhaitez-vous lancer l'algorithme de Floyd-Warshall (saisir 1), travailler sur le CSV résultatnt de son éxécuton précédente (saisir 2), ou quitter (saisir 3) :")
@@ -252,11 +275,4 @@ def a_star(graphe, depart, arrivee):
     
     return None  # Pas de chemin trouvé
 
-import time
-# Lancement du chrono
-startDijkstra = time.time()
 
-a_star(graphe_transforme,1806175538, 1801848709 )
-
-endDijkstra = time.time()
-print("Temps d'exécution = ", endDijkstra - startDijkstra) 

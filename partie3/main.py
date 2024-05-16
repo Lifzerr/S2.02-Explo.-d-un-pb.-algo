@@ -6,8 +6,8 @@ import graphics as g
 
 
 # os.chdir("C:\\IUT\\Semestre 2\\S2.02 - Explo algorithmique d'un problème\\partie3")
-# os.chdir("E:\\Cours\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie3")
-os.chdir("F:\\IUT\\1ereAnnee\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie3")
+os.chdir("E:\\Cours\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie3")
+# os.chdir("F:\\IUT\\1ereAnnee\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie3")
 
 # import dicsucc.json et dicsuccdist.json (--> dictionnaire)
 with open("dicsucc.json", "r") as fichier:
@@ -59,17 +59,22 @@ def affiche_graphe():
     win_width = image_width + 20  # Ajoutez une marge de 20 pixels pour plus d'espace
     win_height = image_height + 20
     
-    # Calcul des coordonnées
-    lat_min, lat_max = sommets['lat'].min(), sommets['lat'].max()
-    lon_min, lon_max = sommets['lon'].min(), sommets['lon'].max()
+    # Déterminer les limites des coordonnées des sommets
+    min_lat, max_lat = min(sommets['lat']), max(sommets['lat'])
+    min_lon, max_lon = min(sommets['lon']), max(sommets['lon'])
 
-    # Calculer les facteurs d'échelle pour convertir les coordonnées en x, y
-    x_scale = (lon_max - lon_min) / image_width
-    y_scale = (lat_max - lat_min) / image_height
+    # Calculer les facteurs d'échelle pour ajuster les coordonnées à la taille de la fenêtre
+    lat_range = max_lat - min_lat
+    lon_range = max_lon - min_lon
 
-    # Convertir les coordonnées de chaque sommet en x, y
-    sommets['x'] = (sommets['lon'] - lon_min) / x_scale
-    sommets['y'] = image_height - ((sommets['lat'] - lat_min) / y_scale)
+    # Calculer les facteurs d'échelle en fonction de la plage de latitudes et de longitudes
+    lat_scale = win_height / lat_range
+    lon_scale = win_width / lon_range
+
+    # Convertir les coordonnées des sommets en coordonnées de la fenêtre
+    sommets['x'] = (sommets['lon'] - min_lon) * lon_scale
+    sommets['y'] = win_height - ((sommets['lat'] - min_lat) * lat_scale)
+
     
     # Créer la fenetre
     win = g.GraphWin("Image Display", win_width, win_height)
