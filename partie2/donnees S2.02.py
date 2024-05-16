@@ -2,6 +2,8 @@ import json
 import pandas as pd
 import numpy as np
 import os
+import math
+from math import acos,asin,cos,sin,pi
 
 
 # os.chdir("C:\\IUT\\Semestre 2\\S2.02 - Explo algorithmique d'un problème\\partie2")
@@ -27,6 +29,7 @@ for ind in aretes.index :
 # import sommets.csv, matrice_poids.csv (--> dataframe)
 sommets = pd.read_table('sommets.csv', sep  =';', index_col= 0)
 matrice_poids = pd.read_csv('matrice_poids.csv', sep = ';', index_col = 0)
+sommets['indice'] = [i for i in range(1884)]
 
 # transformation dataframe matrice des poids en tableau    
 tableau_poids = np.array(matrice_poids)
@@ -39,6 +42,28 @@ for i in range(len(tableau_poids)):
 
 
 del fichier, i, j, val, ls, lst, ind 
+
+
+def distanceGPS(latA, latB, lonA, lonB):
+    pi = math.pi
+    sin = math.sin
+    cos = math.cos
+    acos = math.acos
+    
+    # Conversions des latitudes en radians
+    ltA = latA / 180 * pi
+    ltB = latB / 180 * pi
+    loA = lonA / 180 * pi
+    loB = lonB / 180 * pi
+    
+    # Rayon de la terre en mètres 
+    RT = 6378137
+    
+    # angle en radians entre les 2 points
+    S = acos(round(sin(ltA) * sin(ltB) + cos(ltA) * cos(ltB) * cos(abs(loB - loA)), 14))
+    
+    # distance entre les 2 points, comptée sur un arc de grand cercle
+    return S * RT
 
 
 def transformer_graphe(graphe):
@@ -149,3 +174,51 @@ def floyd_warshall(graphe, depart, arrivee):
     return distances[depart][arrivee]
 
 # distance = floyd_warshall(graphe_transforme, 1806175538, 1801848709)
+
+import heapq
+
+def a_star(graphe, depart, arrivee):
+    # Calculer les distances à vol d'oiseau entre chaque sommet et l'arrivée
+    distances_estimees = {sommet: distanceGPS(sommets.loc[sommet, 'lat'], sommets.loc[arrivee, 'lat'], sommets.loc[sommet, 'lon'], sommets.loc[arrivee, 'lon']) for sommet in graphe}
+    
+    # Initialisation
+    ouverts = [(distances_estimees[depart], depart)]  # (estimation + distance réelle, sommet)
+    fermes = set()
+    predecesseurs = {}
+    distances = {sommet: float('inf') for sommet in graphe}
+    distances[depart] = 0
+    
+    while ouverts:
+        _, sommet_courant = heapq.heappop(ouverts)
+        
+        if sommet_courant == arrivee:
+            # Reconstruction du chemin le plus court
+            chemin = []
+            while sommet_courant != depart:
+                chemin.append(sommet_courant)
+                sommet_courant = predecesseurs[sommet_courant]
+            chemin.append(depart)
+            return chemin[::-1]
+        
+        fermes.add(sommet_courant)
+        
+        for voisin, poids in graphe[sommet_courant].items():
+            if voisin in fermes:
+                continue
+            
+            nouvelle_distance = distances[sommet_courant] + poids
+            if nouvelle_distance < distances[voisin]:
+                distances[voisin] = nouvelle_distance
+                heapq.heappush(ouverts, (nouvelle_distance + distances_estimees[voisin], voisin))
+                predecesseurs[voisin] = sommet_courant
+    
+    return None  # Pas de chemin trouvé
+
+import time
+# Lancement du chrono
+startDijkstra = time.time()
+
+a_star(graphe_transforme,1806175538, 1801848709 )
+
+endDijkstra = time.time()
+print("Temps d'exécution = ", endDijkstra - startDijkstra) 
