@@ -31,6 +31,9 @@ sommets = pd.read_table('sommets.csv', sep  =';', index_col= 0)
 matrice_poids = pd.read_csv('matrice_poids.csv', sep = ';', index_col = 0)
 sommets['indice'] = [i for i in range(1884)]
 
+# Ajout d'un indice correspondant à chaque sommet utile pour le travail en listes
+sommets['indice'] = [i for i in range(1884)]
+
 # transformation dataframe matrice des poids en tableau    
 tableau_poids = np.array(matrice_poids)
 
@@ -155,23 +158,58 @@ chemin = bellman(graphe_transforme, 1806175538, 1801848709)
 
 
 
-def floyd_warshall(graphe, depart, arrivee):
-    # Initialisation de la matrice des distances
-    nb_sommets = len(graphe)
-    distances = {i: {j: float('inf') for j in range(nb_sommets)} for i in range(nb_sommets)}
-    for sommet in graphe:
-        distances[sommet][sommet] = 0
-        for voisin, poids in graphe[sommet].items():
-            distances[sommet][voisin] = poids
+def floyd_warshall(matricePonderee):
+    taille = len(matricePonderee)
+    
+    # Remplissage de M0 et P0
+    M = np.array(matricePonderee)
+    P = np.empty((taille, taille), dtype=int)
+    
+    for i in range(taille):
+        for j in range(taille):
+            if M[i][j] != 0 and i != j:
+                P[i][j] = i
+            else:
+                P[i][j] = -1  # Utilisation de -1 pour indiquer aucun prédécesseur
+    
+    # Début des itérations des lignes et colonnes
+    for k in range(taille):
+        for i in range(taille):
+            for j in range(taille):
+                # Relâchement
+                if M[i][k] + M[k][j] < M[i][j]:
+                    M[i][j] = M[i][k] + M[k][j]
+                    P[i][j] = P[k][j]
+    
+    return M, P
+                        
+(M, P) = floyd_warshall(matrice_poids)
+                
+# Sauvegarder M dans un fichier CSV
+np.savetxt("M_Floyd_Warshall.csv", M, delimiter=",", fmt="%s")
 
-    # Algorithme de Floyd-Warshall
-    for k in range(nb_sommets):
-        for i in range(nb_sommets):
-            for j in range(nb_sommets):
-                distances[i][j] = min(distances[i][j], distances[i][k] + distances[k][j])
+# Sauvegarder P dans un fichier CSV
+np.savetxt("P-Floyd_Warshall.csv", P, delimiter=",", fmt="%d")
+    
 
-    # Retourner la distance entre le sommet de départ et le sommet d'arrivée
-    return distances[depart][arrivee]
+def floyd_warshall_recherche(depart, arrivee):
+    while True:
+        saisie = input("Souhaitez-vous lancer l'algorithme de Floyd-Warshall (saisir 1), travailler sur le CSV résultatnt de son éxécuton précédente (saisir 2), ou quitter (saisir 3) :")
+        if saisie == 1:
+            global matrice_poids
+            (M, P) = floyd_warshall(matrice_poids)
+            break;
+        elif saisie == 2:
+            # Lire la matrice M depuis le fichier CSV
+            M = np.genfromtxt("M.csv", delimiter=",", dtype=float)
+            # Lire la matrice P depuis le fichier CSV
+            P = np.genfromtxt("P.csv", delimiter=",", dtype=int)
+            break
+        elif saisie == 3:
+            return "Au revoir."
+        else:
+            print("Saisie invalide !")
+    return M(depart, arrivee), reconstituer(P, depart, arrivee)
 
 # distance = floyd_warshall(graphe_transforme, 1806175538, 1801848709)
 
