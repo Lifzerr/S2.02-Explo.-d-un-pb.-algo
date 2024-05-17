@@ -197,7 +197,11 @@ np.savetxt("M_Floyd_Warshall.csv", M, delimiter=",", fmt="%s")
 # Sauvegarder P dans un fichier CSV
 np.savetxt("P-Floyd_Warshall.csv", P, delimiter=",", fmt="%d")
     """
-"""
+
+M_FW = pd.read_table('M_Floyd_Warshall.csv', sep=',', decimal='.')
+P_FW = pd.read_table('P-Floyd_Warshall.csv', sep=',', decimal=".")
+
+
 def reconstituer_chemin(P, depart, arrivee):
     chemin = []
     noeud = arrivee
@@ -210,11 +214,8 @@ def reconstituer_chemin(P, depart, arrivee):
     return chemin
 
 chemin = reconstituer_chemin(P, depart, arrivee)
-if chemin:
-    print("Chemin trouvé :", chemin)
-else:
-    print("Aucun chemin trouvé entre", depart, "et", arrivee)
-"""
+
+
 def floyd_warshall_recherche(depart, arrivee):
     while True:
         saisie = input("Souhaitez-vous lancer l'algorithme de Floyd-Warshall (saisir 1), travailler sur le CSV résultatnt de son éxécuton précédente (saisir 2), ou quitter (saisir 3) :")
@@ -276,3 +277,98 @@ def a_star(graphe, depart, arrivee):
     return None  # Pas de chemin trouvé
 
 
+def aetoile(graphe, depart, arrivee):
+    latB = sommets.loc[arrivee, 'lat']
+    lonB = sommets.loc[arrivee, 'lon']
+    distances = {sommet: distanceGPS(sommets.loc[sommet, 'lat'], latB, sommets.loc[sommet, 'lon'], lonB)for sommet in graphe}
+    distances[depart] = 0
+    predecesseurs = {depart:{}}
+    non_traites = set(graphe.keys())
+
+    while non_traites:
+        # Sélectionner le sommet non traité avec la plus petite distance
+        sommet_courant = min(non_traites, key=lambda sommet: distances[sommet])
+        non_traites.remove(sommet_courant)
+
+        if sommet_courant == arrivee:
+            break  # On a trouvé le chemin le plus court
+
+        for voisin, poids in graphe[sommet_courant].items():  # On itère sur les voisins
+            # Calculer la nouvelle distance
+            nouvelle_distance = distances[sommet_courant] + poids
+
+            # Vérifier si la nouvele distance est meilleure
+            if nouvelle_distance < distances[voisin]:
+                distances[voisin] = nouvelle_distance
+                predecesseurs[voisin] = sommet_courant
+
+    # Reconstruction du chemin le plus court
+    #print (predecesseurs, distances)
+    #return reconstituer(predecesseurs, depart, arrivee)
+    chemin = []
+    sommet = arrivee
+    while sommet != depart:
+        chemin.insert(0, sommet)
+        sommet = predecesseurs[sommet]
+    chemin.insert(0, depart)
+
+    return chemin
+
+#aetoile(graphe_transforme, 1806175538, 1801848709)
+
+def aetoile(graphe, depart, arrivee, sommets):
+    # Récupérer les coordonnées de la destination
+    latB = sommets.loc[arrivee, 'lat']
+    lonB = sommets.loc[arrivee, 'lon']
+    
+    def heuristique(sommet):
+        return distanceGPS(sommets.loc[sommet, 'lat'], latB, sommets.loc[sommet, 'lon'], lonB)
+    
+    # Initialisation des distances et des prédécesseurs
+    g_score = {sommet: float('inf') for sommet in graphe}
+    g_score[depart] = 0
+    
+    f_score = {sommet: float('inf') for sommet in graphe}
+    f_score[depart] = heuristique(depart)
+    
+    open_set = {depart}
+    came_from = {}
+    distanceChemin = 0
+    
+    while open_set:
+        # Sélectionner le sommet non traité avec le plus petit f_score
+        sommet_courant = min(open_set, key=lambda sommet: f_score[sommet])
+        
+        if sommet_courant == arrivee:
+            chemin = []
+            sommet = arrivee
+            while sommet != depart:
+                chemin.append(sommet)
+                sommet = came_from.get(sommet)
+                distanceChemin += f_score[sommet]
+                if sommet is None:
+                    return []  # Return empty if there is no valid path
+            chemin.append(depart)
+            chemin.reverse()
+            return chemin, distanceChemin
+        
+        open_set.remove(sommet_courant)
+        
+        for voisin, poids in graphe[sommet_courant].items():
+            tentative_g_score = g_score[sommet_courant] + poids
+            
+            if tentative_g_score < g_score[voisin]:
+                came_from[voisin] = sommet_courant
+                g_score[voisin] = tentative_g_score
+                f_score[voisin] = g_score[voisin] + heuristique(voisin)
+                if voisin not in open_set:
+                    open_set.add(voisin)
+    
+    return None
+
+
+    
+
+# Exemple d'utilisation :
+chemin = aetoile(graphe_transforme, 1806175538, 1801848709, sommets)
+print(chemin)
