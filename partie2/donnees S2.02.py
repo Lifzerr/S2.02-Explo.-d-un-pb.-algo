@@ -122,11 +122,15 @@ def dijkstra(graphe, depart, arrivee):
                 predecesseurs[voisin] = sommet_courant
 
     # Reconstruction du chemin le plus court
-    return reconstituer(predecesseurs, depart, arrivee)
+    chemin = reconstituer(predecesseurs, depart, arrivee)
+    poids_total = distances[arrivee]
+    
+    return (chemin, poids_total)
 
 
-#cheminTest = dijkstra(graphe_transforme, 1806175538, 1801848709)
-
+cheminTest = dijkstra(graphe_transforme, 1806175538, 1801848709)
+print("Dijkstra chemin : ", cheminTest[0], "\n",
+      "poids : ", cheminTest[1])
 
 def bellman(graphe, depart, arrivee):
     # Initialisation
@@ -176,6 +180,12 @@ def floyd_warshall(matricePonderee):
     
     # Début des itérations des lignes et colonnes
     for k in range(taille):
+        ligne = []
+        colonne = []
+        
+        for i in range(taille):
+            ligne.append()
+        
         for i in range(taille):
             for j in range(i, taille):
                 # Relâchement
@@ -188,15 +198,6 @@ def floyd_warshall(matricePonderee):
         print ("étape ", k, " terminée || temps : ", currentTime - start)
     
     return M, P
-"""                        
-(M, P) = floyd_warshall(matrice_poids)
-                
-# Sauvegarder M dans un fichier CSV
-np.savetxt("M_Floyd_Warshall.csv", M, delimiter=",", fmt="%s")
-
-# Sauvegarder P dans un fichier CSV
-np.savetxt("P-Floyd_Warshall.csv", P, delimiter=",", fmt="%d")
-    """
 
 # Importation des données
 M = pd.read_table('M_Floyd_Warshall.csv', sep=',', decimal='.')
@@ -234,7 +235,7 @@ def reconstituer_chemin(P, depart, arrivee):
         
     return chemin, poids_total
 
-chemin = reconstituer_chemin(P,1806175538, 1801848709)
+résultatFloyd = (reconstituer_chemin(P,1806175538, 1801848709))
 
 
 def floyd_warshall_recherche(depart, arrivee):
