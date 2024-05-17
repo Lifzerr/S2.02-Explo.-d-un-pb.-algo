@@ -198,22 +198,43 @@ np.savetxt("M_Floyd_Warshall.csv", M, delimiter=",", fmt="%s")
 np.savetxt("P-Floyd_Warshall.csv", P, delimiter=",", fmt="%d")
     """
 
-M_FW = pd.read_table('M_Floyd_Warshall.csv', sep=',', decimal='.')
-P_FW = pd.read_table('P-Floyd_Warshall.csv', sep=',', decimal=".")
+# Importation des données
+M = pd.read_table('M_Floyd_Warshall.csv', sep=',', decimal='.')
+P = pd.read_table('P-Floyd_Warshall.csv', sep=',', decimal='.')
 
+sommets.loc[1806175538, 'indice']
 
+# Appel de la fonction de reconstition
 def reconstituer_chemin(P, depart, arrivee):
-    chemin = []
-    noeud = arrivee
-    while noeud != depart:
-        chemin.insert(0, noeud)
-        noeud = P[depart][noeud]
-        if noeud == -1:
-            return None  # Aucun chemin trouvé
-    chemin.insert(0, depart)
-    return chemin
+    
+    # Récupérer les indices des points 
+    depart_index = sommets.loc[depart, 'indice']
+    arrivee_index = sommets.loc[arrivee, 'indice']
 
-chemin = reconstituer_chemin(P, depart, arrivee)
+    # Reconstitution du chemin
+    chemin = []
+    poids_total = 0
+    noeud = arrivee_index
+    while noeud != depart_index:
+        chemin.insert(0, noeud)
+        prochain_noeud = P.iloc[depart_index, noeud]
+        if prochain_noeud == -1:
+            return None  # Aucun chemin trouvé
+        poids_total += M.iloc[depart_index, noeud]
+        noeud = prochain_noeud
+    chemin.insert(0, depart_index)
+    
+    if chemin:
+        # Conversion des indices en valeurs réelles des sommets
+        chemin_indices = sommets.loc[chemin, 'indice'].tolist()
+        print("Chemin trouvé:", chemin_indices)
+        print("Poids total du chemin:", poids_total)
+    else:
+        print("Aucun chemin trouvé entre", depart, "et", arrivee)
+        
+    return chemin, poids_total
+
+chemin = reconstituer_chemin(P,1806175538, 1801848709)
 
 
 def floyd_warshall_recherche(depart, arrivee):
@@ -237,7 +258,12 @@ def floyd_warshall_recherche(depart, arrivee):
 
 # distance = floyd_warshall(graphe_transforme, 1806175538, 1801848709)
 
-import heapq
+
+
+
+
+
+
 
 def a_star(graphe, depart, arrivee):
     # Calculer les distances à vol d'oiseau entre chaque sommet et l'arrivée
