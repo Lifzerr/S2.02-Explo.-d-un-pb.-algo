@@ -159,8 +159,8 @@ def bellman(graphe, depart, arrivee):
     return reconstituer(predecesseurs, depart, arrivee)
 
 
-#chemin = bellman(graphe_transforme, 1806175538, 1801848709)
-
+chemin = bellman(graphe_transforme, 1806175538, 1801848709)
+print("Bellman chemin : ", chemin)
 
 
 def floyd_warshall(matricePonderee):
@@ -179,19 +179,12 @@ def floyd_warshall(matricePonderee):
     start = time.time()
     
     # Début des itérations des lignes et colonnes
-    for k in range(taille):
-        ligne = []
-        colonne = []
-        
+    for k in range(taille):       
         for i in range(taille):
-            ligne.append()
-        
-        for i in range(taille):
-            for j in range(i, taille):
+            for j in range(taille):
                 # Relâchement
                 if M[i][k] + M[k][j] < M[i][j]:
                     M[i][j] = M[i][k] + M[k][j]
-                    M[j][i] = M[i][k] + M[k][j]
                     P[i][j] = P[k][j]
         currentTime = time.time()
         
@@ -199,14 +192,44 @@ def floyd_warshall(matricePonderee):
     
     return M, P
 
+M_original, P_original = floyd_warshall(matrice_poids)
+
+# Convertir les matrices NumPy en DataFrame
+df_M = pd.DataFrame(M_original)
+df_P = pd.DataFrame(P_original)
+
+# Sauvegarder les DataFrame dans des fichiers CSV
+df_M.to_csv("M.csv", index=False, header=False)
+df_P.to_csv("P.csv", index=False, header=False)
+
+# Lire les DataFrame depuis les fichiers CSV
+df_M_loaded = pd.read_csv("M.csv", header=None)
+df_P_loaded = pd.read_csv("P.csv", header=None)
+
+# Convertir les DataFrame en matrices NumPy
+M = df_M_loaded.values
+P = df_P_loaded.values
+
+'''
+# Sauvegarder M et P dans des fichiers CSV
+np.savetxt("M.csv", M_original, delimiter=",", fmt="%s")
+np.savetxt("P.csv", P_original, delimiter=",", fmt="%d")
+
+# Lire les matrices depuis les fichiers CSV
+M = np.loadtxt("M.csv", delimiter=",", dtype=float)
+P = np.loadtxt("P.csv", delimiter=",", dtype=int)
+'''
+
+'''
 # Importation des données
 M = pd.read_table('M_Floyd_Warshall.csv', sep=',', decimal='.')
 P = pd.read_table('P-Floyd_Warshall.csv', sep=',', decimal='.')
+'''
 
 sommets.loc[1806175538, 'indice']
 
 # Appel de la fonction de reconstition
-def reconstituer_chemin(P, depart, arrivee):
+def reconstituer_chemin(P, M, depart, arrivee):
     
     # Récupérer les indices des points 
     depart_index = sommets.loc[depart, 'indice']
@@ -235,7 +258,7 @@ def reconstituer_chemin(P, depart, arrivee):
         
     return chemin, poids_total
 
-résultatFloyd = (reconstituer_chemin(P,1806175538, 1801848709))
+résultatFloyd = (reconstituer_chemin(df_P_loaded, df_M_loaded,1806175538, 1801848709))
 
 
 def floyd_warshall_recherche(depart, arrivee):
@@ -259,13 +282,31 @@ def floyd_warshall_recherche(depart, arrivee):
 
 # distance = floyd_warshall(graphe_transforme, 1806175538, 1801848709)
 
+# Fonctions d'aide
+listesommets = list(matrice_poids.index)
+
+def indice(som) :
+    return(listesommets.index(som))
+
+def nomsom(indice) :
+    return(listesommets[indice])
 
 
+def reconstituerFW(P, M, dep, arr):
+    chemin = []
+    sommet = indice(arr)
+    while sommet != indice(dep):
+        chemin.insert(0, nomsom(sommet))
+        sommet = P[indice(dep)][sommet]
+    chemin.insert(0, dep)
+    return chemin, M[indice(dep)][indice(arr)]
 
+cheminFW, poidFw = reconstituerFW(P, M, 1806175538, 1801848709)
 
+print("FW chemin : ", cheminFW, "\n",
+      "poid : ", poidFw)
 
-
-
+'''
 def a_star(graphe, depart, arrivee):
     # Calculer les distances à vol d'oiseau entre chaque sommet et l'arrivée
     distances_estimees = {sommet: distanceGPS(sommets.loc[sommet, 'lat'], sommets.loc[arrivee, 'lat'], sommets.loc[sommet, 'lon'], sommets.loc[arrivee, 'lon']) for sommet in graphe}
@@ -302,7 +343,7 @@ def a_star(graphe, depart, arrivee):
                 predecesseurs[voisin] = sommet_courant
     
     return None  # Pas de chemin trouvé
-
+'''
 
 def aetoile(graphe, depart, arrivee):
     latB = sommets.loc[arrivee, 'lat']
@@ -393,9 +434,3 @@ def aetoile(graphe, depart, arrivee, sommets):
     
     return None
 
-
-    
-
-# Exemple d'utilisation :
-chemin = aetoile(graphe_transforme, 1806175538, 1801848709, sommets)
-print(chemin)
