@@ -5,8 +5,8 @@ import os
 import graphics as g 
 
 
-# os.chdir("C:\\IUT\\Semestre 2\\S2.02 - Explo algorithmique d'un problème\\partie3")
-os.chdir("E:\\Cours\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie3")
+os.chdir("C:\\IUT\\Semestre 2\\S2.02 - Explo algorithmique d'un problème\\partie3")
+# os.chdir("E:\\Cours\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie3")
 # os.chdir("F:\\IUT\\1ereAnnee\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie3")
 
 # import dicsucc.json et dicsuccdist.json (--> dictionnaire)
@@ -46,58 +46,33 @@ del fichier, i, j, val, ls, lst, ind
 
 
 
+dim = (1411,912)
+point1 = (43.48478,-1.48768)
+point2 = (43.4990,-1.45738)
 
 
-def affiche_graphe():
-    # Création fenêtre graphique avec des dimensions adaptées à celles de l'image
-    image_path = "CaptureOpenStreetMap2024.PNG"
-    image = g.Image(g.Point(0, 0), image_path)  # Créez une instance de l'image pour obtenir ses dimensions
-    image_width = image.getWidth()
-    image_height = image.getHeight()
-    
 
-    win_width = image_width + 20  # Ajoutez une marge de 20 pixels pour plus d'espace
-    win_height = image_height + 20
-    
-    # Déterminer les limites des coordonnées des sommets
-    min_lat, max_lat = min(sommets['lat']), max(sommets['lat'])
-    min_lon, max_lon = min(sommets['lon']), max(sommets['lon'])
+def affichageBG():
+    win = g.GraphWin("Carte de Bayonne", 1411, 912)
 
-    # Calculer les facteurs d'échelle pour ajuster les coordonnées à la taille de la fenêtre
-    lat_range = max_lat - min_lat
-    lon_range = max_lon - min_lon
+    background = g.Image(g.Point(1411/2,912/2), "CaptureOpenStreetMap2024.png")
+    background.draw(win)
+    return win
 
-    # Calculer les facteurs d'échelle en fonction de la plage de latitudes et de longitudes
-    lat_scale = win_height / lat_range
-    lon_scale = win_width / lon_range
+#fenetre = affichageBG()
 
-    # Convertir les coordonnées des sommets en coordonnées de la fenêtre
-    sommets['x'] = (sommets['lon'] - min_lon) * lon_scale
-    sommets['y'] = win_height - ((sommets['lat'] - min_lat) * lat_scale)
 
-    
-    # Créer la fenetre
-    win = g.GraphWin("Image Display", win_width, win_height)
-    win.setCoords(0, 0, image_width, image_height)
-        
-    
-    # Permettre le redimensionnement de la fenêtre
-    win.master.resizable(True, True)
 
-    # Chargez et affichez l'image dans la fenêtre graphique
-    image.move(image_width / 2, image_height / 2)  # Déplacez l'image au centre de la fenêtre
-    image.draw(win)
-    
-    # Afficher chaque point dans la fenêtre
-    for _, row in sommets.iterrows():
-        point = g.Point(row['x'], row['y'])
-        point.draw(win)
 
-    # Attendre que l'utilisateur clique pour fermer la fenêtre
-    win.getMouse()
+def affichagePts(win):
+    for point in sommets.index:
+        lat = sommets.loc[point, 'lat']
+        lon = sommets.loc[point, 'lon']
+        x = (lon - point1[1]) * dim[0] / (point2[1] - point1[1])
+        y = (dim[1] - (lat - point1[0]) * dim[1] / (point2[0] - point1[0]))
 
-    # Fermer la fenêtre graphique lorsque l'utilisateur clique
-    win.close()
-    
-    
-affiche_graphe()
+        c = g.Circle(g.Point(x,y), 2)
+        c.setFill(g.color_rgb(200,200,200))
+        c.draw(win)
+    return win
+win = affichagePts(affichageBG())
