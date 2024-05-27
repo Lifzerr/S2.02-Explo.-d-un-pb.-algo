@@ -5,7 +5,7 @@ import os
 import graphics as g 
 
 
-os.chdir("C:\\IUT\\Semestre 2\\S2.02 - Explo algorithmique d'un problème\\partie3")
+# os.chdir("C:\\IUT\\Semestre 2\\S2.02 - Explo algorithmique d'un problème\\partie3")
 # os.chdir("E:\\Cours\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie3")
 # os.chdir("F:\\IUT\\1ereAnnee\\Semestre2\\S2.02\\S2.02-Explo.-d-un-pb.-algo\\partie3")
 
@@ -44,11 +44,127 @@ del fichier, i, j, val, ls, lst, ind
 
 
 
-
-
 dim = (1411,912)
 point1 = (43.48478,-1.48768)
 point2 = (43.4990,-1.45738)
+
+def calculCoordPoint(point): 
+     lat = sommets.loc[point, 'lat']
+     lon = sommets.loc[point, 'lon']
+     x = (lon - point1[1]) * dim[0] / (point2[1] - point1[1])
+     y = (dim[1] - (lat - point1[0]) * dim[1] / (point2[0] - point1[0]))
+     return x, y
+
+
+def transformer_graphe(graphe):
+    """ Le graphe d'origine incluait des clés en string, et nous préférons par simplicité les transformer en entier.
+        De plus, les valeurs du dictionnaire d'origine étaient des listes de listes, et nous préférons, pour manipuler, des dictionnaires.
+        Cette fonction transforme le dictionnaire dans la forme que nous le voulons"""
+    nouveau_graphe = {}
+    # On itère sur les sommet (et leurs successeurs)
+    for sommet_str, voisins in graphe.items():
+        sommet_int = int(sommet_str)     # Transformation de la clé
+        nouveau_graphe[sommet_int] = {}  # Création du couple clé-valeur dans le nouveau dictionnaire
+        for voisin, poids in voisins:
+            nouveau_graphe[sommet_int][voisin] = poids  # Ajout dans le dictionnaire du voisins le poid de l'arc
+    return nouveau_graphe
+
+graphe_transforme = transformer_graphe(dicsuccdist)
+
+import math
+from math import acos,asin,cos,sin,pi
+
+def distanceGPS(latA, latB, lonA, lonB):
+    pi = math.pi
+    sin = math.sin
+    cos = math.cos
+    acos = math.acos
+    
+    # Conversions des latitudes en radians
+    ltA = latA / 180 * pi
+    ltB = latB / 180 * pi
+    loA = lonA / 180 * pi
+    loB = lonB / 180 * pi
+    
+    # Rayon de la terre en mètres 
+    RT = 6378137
+    
+    # angle en radians entre les 2 points
+    S = acos(round(sin(ltA) * sin(ltB) + cos(ltA) * cos(ltB) * cos(abs(loB - loA)), 14))
+    
+    # distance entre les 2 points, comptée sur un arc de grand cercle
+    return S * RT
+
+def reconstituer(pred, dep, arr):
+    chemin = []
+    sommet = arr
+    while sommet != dep:
+        chemin.insert(0, sommet)
+        sommet = pred[sommet]
+    chemin.insert(0, dep)
+
+    return chemin
+
+
+def dessinerArrete(dep, arr, win, color):
+    for row in aretes.iterrows():
+        if row.loc["lstpoints"][0] == dep and row.loc["lstpoints"][-1] == arr:
+            listePoints = row.loc["lstpoints"]
+    
+    for i in range(len(listePoints - 1)):
+        x1, y1 = calculCoordPoint(listePoints[i])
+        
+        x2, y2 = calculCoordPoint(listePoints[i])
+        
+        arrete = g.Line(g.Point(x1, y1), g.Point(x2, y2))
+        
+        arrete.draw(win)
+        
+    return 
+
+def dijkstraGraphique(graphe, depart, arrivee, win):
+    # Initialisation
+    distances = {sommet: float('inf') for sommet in graphe}
+    distances[depart] = 0
+    predecesseurs = {}
+    non_traites = set(graphe.keys())
+    saveSom = int(None)
+
+    while non_traites:
+        # Sélectionner le sommet non traité avec la plus petite distance
+        sommet_courant = min(non_traites, key=lambda sommet: distances[sommet])
+        non_traites.remove(sommet_courant)
+
+        if sommet_courant == arrivee:
+            break  # On a trouvé le chemin le plus court
+
+        for voisin, poids in graphe[sommet_courant].items():  # On itère sur les voisins
+            # Calculer la nouvelle distance
+            nouvelle_distance = distances[sommet_courant] + poids
+            
+            # Dessiner le segment en noir pour montrer qu'on l'a testé
+            dessinerArrete(sommet_courant, voisin, win, color)
+
+            # Vérifier si la nouvele distance est meilleure
+            if nouvelle_distance < distances[voisin]:
+                distances[voisin] = nouvelle_distance
+                predecesseurs[voisin] = sommet_courant
+                
+         
+        # Redessiner le segment le plus cours en rouge une fois car c'est le segment que nous gardons
+        dessinerArrete(predecesseurs[saveSom], saveSom, win, color)
+
+    # Reconstruction du chemin le plus court
+    chemin = reconstituer(predecesseurs, depart, arrivee)
+    poids_total = distances[arrivee]
+    
+    return (chemin, poids_total)
+
+cheminDijkstra = dijkstraGraphique(graphe_transforme, 1806175538, 1801848709)
+print("Chemin trouvé par l'algorithme de Dijkstra : ", cheminDijkstra[0], "\n",
+      "\n",
+      "Poid du chemin : ", cheminDijkstra[1],"\n")
+
 
 
 
