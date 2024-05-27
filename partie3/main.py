@@ -48,6 +48,12 @@ dim = (1411,912)
 point1 = (43.48478,-1.48768)
 point2 = (43.4990,-1.45738)
 
+
+# Calcul des coordonnées transformées
+sommets['x'] = (sommets['lon'] - point1[1]) * dim[0] / (point2[1] - point1[1])
+sommets['y'] = dim[1] - (sommets['lat'] - point1[0]) * dim[1] / (point2[0] - point1[0])
+
+
 def calculCoordPoint(point): 
      lat = sommets.loc[point, 'lat']
      lon = sommets.loc[point, 'lon']
@@ -107,20 +113,21 @@ def reconstituer(pred, dep, arr):
 
 
 def dessinerArrete(dep, arr, win, color):
-    for row in aretes.iterrows():
-        if row.loc["lstpoints"][0] == dep and row.loc["lstpoints"][-1] == arr:
-            listePoints = row.loc["lstpoints"]
+    listePoints = []
     
-    for i in range(len(listePoints - 1)):
+    for arc in aretes.index:
+        if aretes.loc[arc, "lstpoints"][0] == dep and aretes.loc[arc, "lstpoints"][-1] == arr:
+            listePoints = aretes.loc[arc, "lstpoints"]
+
+    for i in range(len(listePoints) - 1):
         x1, y1 = calculCoordPoint(listePoints[i])
-        
-        x2, y2 = calculCoordPoint(listePoints[i])
+        x2, y2 = calculCoordPoint(listePoints[i + 1])
         
         arrete = g.Line(g.Point(x1, y1), g.Point(x2, y2))
-        
+        arrete.setFill(color)
         arrete.draw(win)
         
-    return 
+    return
 
 def dijkstraGraphique(graphe, depart, arrivee, win):
     # Initialisation
@@ -128,7 +135,7 @@ def dijkstraGraphique(graphe, depart, arrivee, win):
     distances[depart] = 0
     predecesseurs = {}
     non_traites = set(graphe.keys())
-    saveSom = int(None)
+    saveSom = int()
 
     while non_traites:
         # Sélectionner le sommet non traité avec la plus petite distance
@@ -143,7 +150,7 @@ def dijkstraGraphique(graphe, depart, arrivee, win):
             nouvelle_distance = distances[sommet_courant] + poids
             
             # Dessiner le segment en noir pour montrer qu'on l'a testé
-            dessinerArrete(sommet_courant, voisin, win, color)
+            dessinerArrete(sommet_courant, voisin, win, "black")
 
             # Vérifier si la nouvele distance est meilleure
             if nouvelle_distance < distances[voisin]:
@@ -152,19 +159,19 @@ def dijkstraGraphique(graphe, depart, arrivee, win):
                 
          
         # Redessiner le segment le plus cours en rouge une fois car c'est le segment que nous gardons
-        dessinerArrete(predecesseurs[saveSom], saveSom, win, color)
+        dessinerArrete(predecesseurs[saveSom], saveSom, win, "red")
 
     # Reconstruction du chemin le plus court
     chemin = reconstituer(predecesseurs, depart, arrivee)
     poids_total = distances[arrivee]
     
     return (chemin, poids_total)
-
+"""
 cheminDijkstra = dijkstraGraphique(graphe_transforme, 1806175538, 1801848709)
 print("Chemin trouvé par l'algorithme de Dijkstra : ", cheminDijkstra[0], "\n",
       "\n",
       "Poid du chemin : ", cheminDijkstra[1],"\n")
-
+"""
 
 
 
@@ -173,6 +180,10 @@ def affichageBG():
 
     background = g.Image(g.Point(1411/2,912/2), "CaptureOpenStreetMap2024.png")
     background.draw(win)
+    
+    # Faire l'algorithme de Dijkstra
+    dijkstraGraphique(graphe_transforme, 1806175538, 1801848709, win)
+    
     return win
 
 #fenetre = affichageBG()
