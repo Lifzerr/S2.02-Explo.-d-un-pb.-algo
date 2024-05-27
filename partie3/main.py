@@ -113,21 +113,14 @@ def reconstituer(pred, dep, arr):
 
 
 def dessinerArrete(dep, arr, win, color):
-    listePoints = []
-    
-    for arc in aretes.index:
-        if aretes.loc[arc, "lstpoints"][0] == dep and aretes.loc[arc, "lstpoints"][-1] == arr:
-            listePoints = aretes.loc[arc, "lstpoints"]
 
-    for i in range(len(listePoints) - 1):
-        x1, y1 = calculCoordPoint(listePoints[i])
-        x2, y2 = calculCoordPoint(listePoints[i + 1])
+    x1, y1 = calculCoordPoint(dep)
+    x2, y2 = calculCoordPoint(arr)
+    
+    arrete = g.Line(g.Point(x1, y1), g.Point(x2, y2))
+    arrete.setFill(color)
+    arrete.draw(win)
         
-        arrete = g.Line(g.Point(x1, y1), g.Point(x2, y2))
-        arrete.setFill(color)
-        arrete.draw(win)
-        
-    return
 
 def dijkstraGraphique(graphe, depart, arrivee, win):
     # Initialisation
@@ -150,16 +143,17 @@ def dijkstraGraphique(graphe, depart, arrivee, win):
             nouvelle_distance = distances[sommet_courant] + poids
             
             # Dessiner le segment en noir pour montrer qu'on l'a testé
-            dessinerArrete(sommet_courant, voisin, win, "black")
+            dessinerArrete(sommet_courant, voisin, win, "red")
 
             # Vérifier si la nouvele distance est meilleure
             if nouvelle_distance < distances[voisin]:
                 distances[voisin] = nouvelle_distance
                 predecesseurs[voisin] = sommet_courant
+                saveSom = voisin
                 
          
         # Redessiner le segment le plus cours en rouge une fois car c'est le segment que nous gardons
-        dessinerArrete(predecesseurs[saveSom], saveSom, win, "red")
+        dessinerArrete(predecesseurs[saveSom], saveSom, win, "black")
 
     # Reconstruction du chemin le plus court
     chemin = reconstituer(predecesseurs, depart, arrivee)
