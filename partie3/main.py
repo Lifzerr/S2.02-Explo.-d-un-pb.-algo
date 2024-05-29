@@ -54,6 +54,29 @@ sommets['x'] = (sommets['lon'] - point1[1]) * dim[0] / (point2[1] - point1[1])
 sommets['y'] = dim[1] - (sommets['lat'] - point1[0]) * dim[1] / (point2[0] - point1[0])
 
 
+"""
+
+for ind in aretes.index:
+    tempoList = []
+    tempoString = aretes.loc[ind]['lstpoints'].replace('[','')
+    tempoString = tempoString.replace(']','')
+    tempoString = tempoString.replace(' ','')
+    tempoList = tempoString.split(',')
+    aretes.at[ind,'listePoints'] = tempoList
+    tempoList = []
+    for pt in  aretes.at[ind,'listePoints'] :
+        tempoList.append(int(pt))
+    aretes.at[ind,'listePoints'] = tempoList
+    aretes.at[ind,'sommetDepart'] = int(aretes.loc[ind,'listePoints'][0])
+    aretes.at[ind,'sommetArrivee'] = int(aretes.loc[ind,'listePoints'][-1])
+
+""
+# Changement de type
+arcs = arcs.astype({'sommetDepart': 'int64', 'sommetArrivee': 'int64'})
+"""
+
+
+
 def calculCoordPoint(point): 
      lat = sommets.loc[point, 'lat']
      lon = sommets.loc[point, 'lon']
@@ -168,24 +191,41 @@ print("Chemin trouvé par l'algorithme de Dijkstra : ", cheminDijkstra[0], "\n",
 """
 
 
+def affichageArcs():    
+    for arc in aretes.index:
+        
+        listePoints = aretes.loc[arc, 'lstpoints']
+        point1 = listePoints[0]
+        point2 = listePoints[-1]
+        traceArc(point1, point2)
+
+
+
+def traceArc(point1, point2):
+    lat1 = sommets.loc[point1, 'y']
+    lon1 = sommets.loc[point1, 'x']
+    lat2 = sommets.loc[point2, 'y']
+    lon2 = sommets.loc[point2,'x']
+    
+    pt1 = g.Point(lon1, lat1)
+    pt2 = g.Point(lon2, lat2)
+    
+    arc = g.Line(pt1, pt2)
+    arc.draw(win)
+
 
 def affichageBG():
-    win = g.GraphWin("Carte de Bayonne", 1411, 912)
 
     background = g.Image(g.Point(1411/2,912/2), "CaptureOpenStreetMap2024.png")
     background.draw(win)
     
-    # Faire l'algorithme de Dijkstra
-    dijkstraGraphique(graphe_transforme, 1806175538, 1801848709, win)
-    
-    return win
 
 #fenetre = affichageBG()
 
 
 
 
-def affichagePts(win):
+def affichagePts():
     for point in sommets.index:
         lat = sommets.loc[point, 'lat']
         lon = sommets.loc[point, 'lon']
@@ -195,5 +235,11 @@ def affichagePts(win):
         c = g.Circle(g.Point(x,y), 2)
         c.setFill(g.color_rgb(200,200,200))
         c.draw(win)
-    return win
-win = affichagePts(affichageBG())
+        
+    affichageArcs()
+
+
+win = g.GraphWin("Carte de Bayonne", 1411, 912)
+affichageBG()
+affichagePts()
+# affichagePts(affichageBG())
