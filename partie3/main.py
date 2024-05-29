@@ -131,27 +131,22 @@ def reconstituer(pred, dep, arr):
         chemin.insert(0, sommet)
         sommet = pred[sommet]
     chemin.insert(0, dep)
+    
+    # Afficher le chemin
+    for i in range(len(chemin)-1):
+        point1 = chemin[i]
+        point2 = chemin[i+1]
+        # Re-dessiner l'arête sauvegardée en bleu
+        traceArc(point1, point2, "blue", 2)
 
     return chemin
 
-
-def dessinerArrete(dep, arr, win, color):
-
-    x1, y1 = calculCoordPoint(dep)
-    x2, y2 = calculCoordPoint(arr)
-    
-    arrete = g.Line(g.Point(x1, y1), g.Point(x2, y2))
-    arrete.setFill(color)
-    arrete.draw(win)
-        
-
-def dijkstraGraphique(graphe, depart, arrivee, win):
+def dijkstra(graphe, depart, arrivee):
     # Initialisation
     distances = {sommet: float('inf') for sommet in graphe}
     distances[depart] = 0
     predecesseurs = {}
     non_traites = set(graphe.keys())
-    saveSom = int()
 
     while non_traites:
         # Sélectionner le sommet non traité avec la plus petite distance
@@ -165,30 +160,64 @@ def dijkstraGraphique(graphe, depart, arrivee, win):
             # Calculer la nouvelle distance
             nouvelle_distance = distances[sommet_courant] + poids
             
-            # Dessiner le segment en noir pour montrer qu'on l'a testé
-            dessinerArrete(sommet_courant, voisin, win, "red")
+            # Dessiner l'arête visitée en rouge
+            traceArc(sommet_courant, voisin, "red", 2)
 
             # Vérifier si la nouvele distance est meilleure
             if nouvelle_distance < distances[voisin]:
                 distances[voisin] = nouvelle_distance
                 predecesseurs[voisin] = sommet_courant
-                saveSom = voisin
-                
-         
-        # Redessiner le segment le plus cours en rouge une fois car c'est le segment que nous gardons
-        dessinerArrete(predecesseurs[saveSom], saveSom, win, "black")
 
     # Reconstruction du chemin le plus court
     chemin = reconstituer(predecesseurs, depart, arrivee)
     poids_total = distances[arrivee]
     
-    return (chemin, poids_total)
-"""
-cheminDijkstra = dijkstraGraphique(graphe_transforme, 1806175538, 1801848709)
-print("Chemin trouvé par l'algorithme de Dijkstra : ", cheminDijkstra[0], "\n",
-      "\n",
-      "Poid du chemin : ", cheminDijkstra[1],"\n")
-"""
+    #☻ return (chemin, poids_total)
+
+
+
+
+
+
+
+
+
+
+
+# c7heminTest = dijkstra(graphe_transforme, 1806175538, 1801848709)
+# print("Dijkstra chemin : ", cheminTest[0], "\n",
+      # "poids : ", cheminTest[1])
+
+def bellman(graphe, depart, arrivee):
+    # Initialisation
+    distances = {sommet: float('inf') for sommet in graphe}
+    distances[depart] = 0
+    predecesseurs = {}
+
+    # Nombre de sommets dans le graphe
+    nb_sommets = len(graphe)
+
+    # Relachement des arêtes
+    for _ in range(nb_sommets - 1):
+        for sommet in graphe:
+            for voisin, poids in graphe[sommet].items():
+                if distances[sommet] + poids < distances[voisin]:
+                    distances[voisin] = distances[sommet] + poids
+                    predecesseurs[voisin] = sommet
+
+    # Détection de cycle négatif
+    for sommet in graphe:
+        for voisin, poids in graphe[sommet].items():
+            if distances[sommet] + poids < distances[voisin]:
+                return "Cycle négatif détecté"
+
+    # Reconstruction du chemin le plus court
+    return reconstituer(predecesseurs, depart, arrivee)
+
+
+# chemin = bellman(graphe_transforme, 1806175538, 1801848709)
+# print("Bellman chemin : ", chemin)
+
 
 
 def affichageArcs():    
@@ -201,7 +230,7 @@ def affichageArcs():
 
 
 
-def traceArc(point1, point2):
+def traceArc(point1, point2, color = "black", width = 1):
     lat1 = sommets.loc[point1, 'y']
     lon1 = sommets.loc[point1, 'x']
     lat2 = sommets.loc[point2, 'y']
@@ -211,6 +240,8 @@ def traceArc(point1, point2):
     pt2 = g.Point(lon2, lat2)
     
     arc = g.Line(pt1, pt2)
+    arc.setFill(color)
+    arc.setWidth(width)
     arc.draw(win)
 
 
@@ -242,4 +273,5 @@ def affichagePts():
 win = g.GraphWin("Carte de Bayonne", 1411, 912)
 affichageBG()
 affichagePts()
+dijkstra(graphe_transforme, 1806175538, 1801848709)
 # affichagePts(affichageBG())
