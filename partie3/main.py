@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import os
 import graphics as g 
+import time as t
 
 
 # os.chdir("C:\\IUT\\Semestre 2\\S2.02 - Explo algorithmique d'un problème\\partie3")
@@ -127,7 +128,13 @@ def distanceGPS(latA, latB, lonA, lonB):
 def reconstituer(pred, dep, arr):
     chemin = []
     sommet = arr
+    if arr not in pred:
+        print(f"Aucun chemin trouvé de {dep} à {arr}")
+        return chemin
     while sommet != dep:
+        if sommet not in pred:
+            print(f"Erreur : sommet {sommet} n'a pas de prédécesseur.")
+            return []
         chemin.insert(0, sommet)
         sommet = pred[sommet]
     chemin.insert(0, dep)
@@ -174,16 +181,6 @@ def dijkstra(graphe, depart, arrivee):
     
     #☻ return (chemin, poids_total)
 
-
-
-
-
-
-
-
-
-
-
 # c7heminTest = dijkstra(graphe_transforme, 1806175538, 1801848709)
 # print("Dijkstra chemin : ", cheminTest[0], "\n",
       # "poids : ", cheminTest[1])
@@ -198,9 +195,11 @@ def bellman(graphe, depart, arrivee):
     nb_sommets = len(graphe)
 
     # Relachement des arêtes
-    for _ in range(nb_sommets - 1):
+    for etape in range(nb_sommets - 1):
         for sommet in graphe:
             for voisin, poids in graphe[sommet].items():
+                if(etape == 1):
+                    traceArc(sommet, voisin, "red", 2)
                 if distances[sommet] + poids < distances[voisin]:
                     distances[voisin] = distances[sommet] + poids
                     predecesseurs[voisin] = sommet
@@ -222,7 +221,6 @@ def bellman(graphe, depart, arrivee):
 
 def affichageArcs():    
     for arc in aretes.index:
-        
         listePoints = aretes.loc[arc, 'lstpoints']
         point1 = listePoints[0]
         point2 = listePoints[-1]
@@ -251,27 +249,60 @@ def affichageBG():
     background.draw(win)
     
 
-#fenetre = affichageBG()
-
-
-
 
 def affichagePts():
     for point in sommets.index:
+        # récup & conversion coordonnées
         lat = sommets.loc[point, 'lat']
         lon = sommets.loc[point, 'lon']
         x = (lon - point1[1]) * dim[0] / (point2[1] - point1[1])
         y = (dim[1] - (lat - point1[0]) * dim[1] / (point2[0] - point1[0]))
 
+        # Dessiner le points en cours
         c = g.Circle(g.Point(x,y), 2)
         c.setFill(g.color_rgb(200,200,200))
         c.draw(win)
-        
+    # Dessiner les aretes
     affichageArcs()
 
 
+# Création de la fenetre
 win = g.GraphWin("Carte de Bayonne", 1411, 912)
-affichageBG()
-affichagePts()
-dijkstra(graphe_transforme, 1806175538, 1801848709)
-# affichagePts(affichageBG())
+
+def main():
+    
+    
+    # Afficher l'image, les points et les aretes
+    affichageBG()
+    affichagePts()
+    
+    # Exécuter l'algorithme de Dijkstra
+    dijkstra(graphe_transforme, 1806175538, 1801848709)
+    
+    # Attendre le clic utilisateur
+    point = win.getMouse()
+    
+    # Réafficher la fenetre d'origine
+    affichageBG()
+    affichagePts() 
+    
+    # Afficher l'algorithme de Belmann
+    
+    # Exécuter l'algorithme de bellman
+    bellman(graphe_transforme, 1806175538, 1801848709)
+    
+    #Temps d'attente
+    t.sleep(1)
+    
+    print("Je suis arrivé")
+
+
+main()
+
+
+
+
+
+
+
+
