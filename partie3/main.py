@@ -179,11 +179,6 @@ def dijkstra(graphe, depart, arrivee):
     chemin = reconstituer(predecesseurs, depart, arrivee)
     poids_total = distances[arrivee]
     
-    #☻ return (chemin, poids_total)
-
-# c7heminTest = dijkstra(graphe_transforme, 1806175538, 1801848709)
-# print("Dijkstra chemin : ", cheminTest[0], "\n",
-      # "poids : ", cheminTest[1])
 
 def bellman(graphe, depart, arrivee):
     # Initialisation
@@ -214,8 +209,61 @@ def bellman(graphe, depart, arrivee):
     return reconstituer(predecesseurs, depart, arrivee)
 
 
-# chemin = bellman(graphe_transforme, 1806175538, 1801848709)
-# print("Bellman chemin : ", chemin)
+
+def aetoile(graphe, depart, arrivee):
+    # Récupérer les coordonnées de la destination
+    latB = sommets.loc[arrivee, 'lat']
+    lonB = sommets.loc[arrivee, 'lon']
+
+    # Déclaration de la sous-fonction interne heuristique
+    def heuristique(sommet):
+        return distanceGPS(sommets.loc[sommet, 'lat'], latB, sommets.loc[sommet, 'lon'], lonB)
+    
+    # Initialisation des distances et des prédécesseurs
+    g_score = {sommet: float('inf') for sommet in graphe}
+    g_score[depart] = 0
+    
+    f_score = {sommet: float('inf') for sommet in graphe}
+    f_score[depart] = heuristique(depart)
+    
+    open_set = {depart}
+    came_from = {}
+    distanceChemin = 0
+    
+    while open_set:
+        # Sélectionner le sommet non traité avec le plus petit f_score
+        sommet_courant = min(open_set, key=lambda sommet: f_score[sommet])
+        
+        if sommet_courant == arrivee:
+            chemin = []
+            sommet = arrivee
+            while sommet != depart:
+                chemin.append(sommet)
+                sommet = came_from.get(sommet)
+                traceArc(chemin[-1], sommet, "blue", 2)
+                distanceChemin += f_score[sommet]
+                if sommet is None:
+                    return []  # Return empty if there is no valid path
+            chemin.append(depart)
+            chemin.reverse()
+            return (chemin, distanceChemin)
+        
+        open_set.remove(sommet_courant)
+        
+        for voisin, poids in graphe[sommet_courant].items():
+            tentative_g_score = g_score[sommet_courant] + poids
+            
+            traceArc(sommet_courant, voisin, "red")
+            
+            if tentative_g_score < g_score[voisin]:
+                came_from[voisin] = sommet_courant
+                g_score[voisin] = tentative_g_score
+                f_score[voisin] = g_score[voisin] + heuristique(voisin)
+                if voisin not in open_set:
+                    open_set.add(voisin)
+    
+    return None
+
 
 
 
@@ -281,15 +329,17 @@ def main():
     
     # Attendre le clic utilisateur
     point = win.getMouse()
-    
-    # Réafficher la fenetre d'origine
-    affichageBG()
-    affichagePts() 
-    
-    # Afficher l'algorithme de Belmann
+    effaceChemin()
     
     # Exécuter l'algorithme de bellman
     bellman(graphe_transforme, 1806175538, 1801848709)
+    
+    # Attendre le clic utilisateur
+    point = win.getMouse()
+    effaceChemin()
+    
+    # Exécuter l'algorithme A*
+    aetoile(graphe_transforme, 1806175538, 1801848709)
     
     # Attendre le clic utilisateur
     point = win.getMouse()
@@ -298,6 +348,11 @@ def main():
     
     print("Je suis arrivé")
 
+
+def effaceChemin():
+    # Réafficher la fenetre d'origine
+    affichageBG()
+    affichagePts() 
 
 main()
 
