@@ -291,8 +291,10 @@ def main():
     # Exécuter l'algorithme de bellman
     bellman(graphe_transforme, 1806175538, 1801848709)
     
-    #Temps d'attente
-    t.sleep(1)
+    # Attendre le clic utilisateur
+    point = win.getMouse()
+    
+    win.close()
     
     print("Je suis arrivé")
 
