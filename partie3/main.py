@@ -62,10 +62,11 @@ def calculLatLonPoint(point):
     """ But : Calculer les coordonnées géographique de point point fourni en paramètre,
             Ce qui nous permettra de vérifier quel est le point le plus proche pour le programme qui 
             trace le chemin en fonction des clics"""
-    x = point.x
-    y = point.y
-    lon = (x * (point2[1] - point[1]) / dim[0]) + point[1]
-    lat = (-1 * (((y - dim[1]) * (point2[0] - point1[0])) / dim[1]) - point1[0])
+    x = point.getX()
+    y = point.getY()
+    lon = (x * (point2[1] - point1[1]) / dim[0]) + point1[1]
+    lat = point1[0] - ((dim[1] - y) * (point2[0] - point1[0]) / dim[1])
+    print(f"Transformed coordinates: lat={lat}, lon={lon}")
     return lat, lon
 
 
@@ -89,23 +90,52 @@ from math import acos,asin,cos,sin,pi
 
 def choisirArriverDepart():
     """ But : permettre à l'utilisateur de sélectionner sur la carte son point de départ et d'arrivée. """
+    # Saisie par l'utilisateur du clic de départ
     clicDep = win.getMouse()
-    clicArr = win.getPoint()
-    
-    
-    lat, lon = calculLatLonPoint(clicDep)
+
+    x_dep, y_dep = clicDep.getX(), clicDep.getY()
+
     sommetDep = None
+    min_distance_dep = float('inf')
+ 
+    # Recherche du sommet le plus proche du clic de départ
+    for index, row in sommets.iterrows():
+        distance_dep = distance(x_dep, y_dep, row["x"], row["y"])
+        if distance_dep < min_distance_dep:
+            min_distance_dep = distance_dep
+            sommetDep = index
     
-    # Recherche du chemin le plus proche
-    for row in sommets.items():
-        if sommetDep == None or distanceGPS(lat, lon, row["lat"], row["lon"]) < distanceGPS(lat, lon, sommets.loc[sommetDep, "lat"], sommets.loc[sommetDep, "lon"]):
-            sommetsDep = row.index()
-    lat, lon = calculLatLonPoint(clicDep)
+    # Dessiner le sommet de départ
+    c = g.Circle(g.Point(sommets.loc[sommetDep, "x"],sommets.loc[sommetDep, "y"]), 2)
+    c.setFill(g.color_rgb(0,0,0))
+    c.setWidth(5)
+    c.draw(win)
+    
+    # Saisie par l'utilisateur du clic d'arrivée
+    clicArr = win.getMouse()
+    
+    x_arr, y_arr = clicArr.getX(), clicArr.getY()
+
     sommetArr = None
-    for row in sommets.items():
-        if sommetArr == None or distanceGPS(lat, lon, row["lat"], row["lon"]) < distanceGPS(lat, lon, sommets.loc[sommetArr, "lat"], sommets.loc[sommetArr, "lon"]):
-            sommetArr = row.index()
+    min_distance_arr = float('inf')
+
+    # Recherche du sommet le plus proche du clic d'arrivée
+    for index, row in sommets.iterrows():
+        distance_arr = distance(x_arr, y_arr, row["x"], row["y"])
+        if distance_arr < min_distance_arr:
+            min_distance_arr = distance_arr
+            sommetArr = index
+            
+    # Dessiner le sommet d'arrivée
+    c = g.Circle(g.Point(sommets.loc[sommetArr, "x"],sommets.loc[sommetArr, "y"]), 2)
+    c.setFill(g.color_rgb(0,0,0))
+    c.setWidth(5)
+    c.draw(win)
+
     return sommetDep, sommetArr
+
+def distance(x1, y1, x2, y2):
+    return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
 def distanceGPS(latA, latB, lonA, lonB):
     pi = math.pi
@@ -324,6 +354,18 @@ def affichagePts():
         c.draw(win)
     # Dessiner les aretes
     affichageArcs()
+    
+def afficherDepArr(dep, arr):
+    # Dessiner le sommet de départ
+    c = g.Circle(g.Point(sommets.loc[dep, "x"],sommets.loc[dep, "y"]), 2)
+    c.setFill(g.color_rgb(0,0,0))
+    c.setWidth(5)
+    c.draw(win)
+    # Dessiner le sommet d'arrivée
+    c = g.Circle(g.Point(sommets.loc[arr, "x"],sommets.loc[arr, "y"]), 2)
+    c.setFill(g.color_rgb(0,0,0))
+    c.setWidth(5)
+    c.draw(win)
 
 
 # Création de la fenetre
@@ -338,27 +380,28 @@ def main():
     """
     
     # Afficher l'image, les points et les aretes
-    resetCarte()
+    affichageBG()
+    affichagePts()
     
     # Saisie à la sourie du départ et de l'arrivée
-    choisirArriverDepart()
+    depart, arrivee = choisirArriverDepart()
     
     # Exécuter l'algorithme de Dijkstra
-    dijkstra(graphe_transforme, 1806175538, 1801848709)
+    dijkstra(graphe_transforme, depart, arrivee)
     
     # Attendre le clic utilisateur
     point = win.getMouse()
-    resetCarte()
+    resetCarte(depart, arrivee)
     
     # Exécuter l'algorithme de bellman
-    bellman(graphe_transforme, 1806175538, 1801848709)
+    bellman(graphe_transforme, depart, arrivee)
     
     # Attendre le clic utilisateur
     point = win.getMouse()
-    resetCarte()
+    resetCarte(depart, arrivee)
     
     # Exécuter l'algorithme A*
-    aetoile(graphe_transforme, 1806175538, 1801848709)
+    aetoile(graphe_transforme, depart, arrivee) # 1806175538, 1801848709
     
     # Attendre le clic utilisateur
     point = win.getMouse()
@@ -367,11 +410,12 @@ def main():
     
 
 
-def resetCarte():
-    """ But : Supprimer les trajets des algorithmes successifs & afficher la carte, les points, et les aretes  """"
+def resetCarte(dep, arr):
+    """ But : Supprimer les trajets des algorithmes successifs & afficher la carte, les points, et les aretes  """
     # Réafficher la fenetre d'origine
     affichageBG()
-    affichagePts() 
+    affichagePts()
+    afficherDepArr(dep, arr)
 
 main()
 
