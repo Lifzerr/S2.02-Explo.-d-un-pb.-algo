@@ -19,6 +19,8 @@ with open("dicsuccdist.json", "r") as fichier:
 # import aretes.csv (--> dataframe) et transformation de lstpoints (chaîne-->liste)
 aretes = pd.read_table('aretes.csv', sep  =';', index_col= 0)
 
+
+# Remplacer les string par des listes d'entiers
 for ind in aretes.index :
     ls = aretes.loc[ind,'lstpoints'].replace(" ","").replace("]", "").replace("[", "").split(',')
     lst = []
@@ -40,11 +42,11 @@ for i in range(len(tableau_poids)):
     for j in range(len(tableau_poids)):
         liste_poids[i][j]  = tableau_poids[i,j]
 
-
+# Nettoyage des variables
 del fichier, i, j, val, ls, lst, ind 
 
 
-
+# Données nécessaires au placement des points & aretes
 dim = (1411,912)
 point1 = (43.48478,-1.48768)
 point2 = (43.4990,-1.45738)
@@ -55,37 +57,11 @@ sommets['x'] = (sommets['lon'] - point1[1]) * dim[0] / (point2[1] - point1[1])
 sommets['y'] = dim[1] - (sommets['lat'] - point1[0]) * dim[1] / (point2[0] - point1[0])
 
 
-"""
 
-for ind in aretes.index:
-    tempoList = []
-    tempoString = aretes.loc[ind]['lstpoints'].replace('[','')
-    tempoString = tempoString.replace(']','')
-    tempoString = tempoString.replace(' ','')
-    tempoList = tempoString.split(',')
-    aretes.at[ind,'listePoints'] = tempoList
-    tempoList = []
-    for pt in  aretes.at[ind,'listePoints'] :
-        tempoList.append(int(pt))
-    aretes.at[ind,'listePoints'] = tempoList
-    aretes.at[ind,'sommetDepart'] = int(aretes.loc[ind,'listePoints'][0])
-    aretes.at[ind,'sommetArrivee'] = int(aretes.loc[ind,'listePoints'][-1])
-
-""
-# Changement de type
-arcs = arcs.astype({'sommetDepart': 'int64', 'sommetArrivee': 'int64'})
-"""
-
-
-
-def calculCoordPoint(point): 
-     lat = sommets.loc[point, 'lat']
-     lon = sommets.loc[point, 'lon']
-     x = (lon - point1[1]) * dim[0] / (point2[1] - point1[1])
-     y = (dim[1] - (lat - point1[0]) * dim[1] / (point2[0] - point1[0]))
-     return x, y
- 
 def calculLatLonPoint(point):
+    """ But : Calculer les coordonnées géographique de point point fourni en paramètre,
+            Ce qui nous permettra de vérifier quel est le point le plus proche pour le programme qui 
+            trace le chemin en fonction des clics"""
     x = point.x
     y = point.y
     lon = (x * (point2[1] - point[1]) / dim[0]) + point[1]
@@ -112,11 +88,15 @@ import math
 from math import acos,asin,cos,sin,pi
 
 def choisirArriverDepart():
+    """ But : permettre à l'utilisateur de sélectionner sur la carte son point de départ et d'arrivée. """
     clicDep = win.getMouse()
     clicArr = win.getPoint()
     
+    
     lat, lon = calculLatLonPoint(clicDep)
     sommetDep = None
+    
+    # Recherche du chemin le plus proche
     for row in sommets.items():
         if sommetDep == None or distanceGPS(lat, lon, row["lat"], row["lon"]) < distanceGPS(lat, lon, sommets.loc[sommetDep, "lat"], sommets.loc[sommetDep, "lon"]):
             sommetsDep = row.index()
@@ -150,11 +130,14 @@ def distanceGPS(latA, latB, lonA, lonB):
     return S * RT
 
 def reconstituer(pred, dep, arr):
+    """ But : Reconstituer un chemin issu des algorithmes de Dijkstra ou Bellman & l'afficher """
     chemin = []
     sommet = arr
     if arr not in pred:
         print(f"Aucun chemin trouvé de {dep} à {arr}")
         return chemin
+    
+    # Reconstituer le chemin
     while sommet != dep:
         if sommet not in pred:
             print(f"Erreur : sommet {sommet} n'a pas de prédécesseur.")
@@ -167,7 +150,7 @@ def reconstituer(pred, dep, arr):
     for i in range(len(chemin)-1):
         point1 = chemin[i]
         point2 = chemin[i+1]
-        # Re-dessiner l'arête sauvegardée en bleu
+        # Dessiner l'arête sauvegardée en bleu
         traceArc(point1, point2, "blue", 2)
 
     return chemin
@@ -258,6 +241,7 @@ def aetoile(graphe, depart, arrivee):
         # Sélectionner le sommet non traité avec le plus petit f_score
         sommet_courant = min(open_set, key=lambda sommet: f_score[sommet])
         
+        # Si on est arrivé au sommet de fin, reconstituer le chemin
         if sommet_courant == arrivee:
             chemin = []
             sommet = arrivee
@@ -274,6 +258,7 @@ def aetoile(graphe, depart, arrivee):
         
         open_set.remove(sommet_courant)
         
+        # Vérifier quel est le point (à vol d'oiseau) le plus proche de l'arrivée
         for voisin, poids in graphe[sommet_courant].items():
             tentative_g_score = g_score[sommet_courant] + poids
             
@@ -292,6 +277,7 @@ def aetoile(graphe, depart, arrivee):
 
 
 def affichageArcs():    
+    """ But : Afficher tous les arcs en rouge sur la carte """ 
     for arc in aretes.index:
         listePoints = aretes.loc[arc, 'lstpoints']
         point1 = listePoints[0]
@@ -301,6 +287,8 @@ def affichageArcs():
 
 
 def traceArc(point1, point2, color = "black", width = 1):
+    """ But : Afficher l'arc reliant les points point1 & point2 de la couleur color (noir par défaut) avec une ligne d'épaisseur width (par défaut égale à 1) """
+    
     lat1 = sommets.loc[point1, 'y']
     lon1 = sommets.loc[point1, 'x']
     lat2 = sommets.loc[point2, 'y']
@@ -316,13 +304,14 @@ def traceArc(point1, point2, color = "black", width = 1):
 
 
 def affichageBG():
-
+    """ But : Afficher l'image en fond de la fenêtre """
     background = g.Image(g.Point(1411/2,912/2), "CaptureOpenStreetMap2024.png")
     background.draw(win)
     
 
 
 def affichagePts():
+    """ But : Afficher tous les points du dataframe sommets dans la fenêtre """
     for point in sommets.index:
         # récup & conversion coordonnées
         lat = sommets.loc[point, 'lat']
@@ -342,25 +331,29 @@ def affichagePts():
 win = g.GraphWin("Carte de Bayonne", 1411, 912)
 
 def main():
-    
+    """ 
+    Description : Cette procédure affiche toutes les informations des dataframes sommets & aretes.
+                Elle affiche ensuite le déroulement de l'algorithme de Dijkstra, puis attend un clic utilisateur.
+                Une fois ce clic pressé, elle affiche le déroulement de l'algorithme de Bellman, et la procédure
+                de clic se répète pour permettre l'affichage de l'algorithme A*
+    """
     
     # Afficher l'image, les points et les aretes
-    affichageBG()
-    affichagePts()
+    resetCarte()
     
     # Exécuter l'algorithme de Dijkstra
     dijkstra(graphe_transforme, 1806175538, 1801848709)
     
     # Attendre le clic utilisateur
     point = win.getMouse()
-    effaceChemin()
+    resetCarte()
     
     # Exécuter l'algorithme de bellman
     bellman(graphe_transforme, 1806175538, 1801848709)
     
     # Attendre le clic utilisateur
     point = win.getMouse()
-    effaceChemin()
+    resetCarte()
     
     # Exécuter l'algorithme A*
     aetoile(graphe_transforme, 1806175538, 1801848709)
@@ -372,7 +365,8 @@ def main():
     
 
 
-def effaceChemin():
+def resetCarte():
+    """ But : Supprimer les trajets des algorithmes successifs & afficher la carte, les points, et les aretes  """"
     # Réafficher la fenetre d'origine
     affichageBG()
     affichagePts() 
