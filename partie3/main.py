@@ -84,6 +84,13 @@ def calculCoordPoint(point):
      x = (lon - point1[1]) * dim[0] / (point2[1] - point1[1])
      y = (dim[1] - (lat - point1[0]) * dim[1] / (point2[0] - point1[0]))
      return x, y
+ 
+def calculLatLonPoint(point):
+    x = point.x
+    y = point.y
+    lon = (x * (point2[1] - point[1]) / dim[0]) + point[1]
+    lat = (-1 * (((y - dim[1]) * (point2[0] - point1[0])) / dim[1]) - point1[0])
+    return lat, lon
 
 
 def transformer_graphe(graphe):
@@ -103,6 +110,23 @@ graphe_transforme = transformer_graphe(dicsuccdist)
 
 import math
 from math import acos,asin,cos,sin,pi
+
+def choisirArriverDepart():
+    clicDep = win.getMouse()
+    clicArr = win.getPoint()
+    
+    lat, lon = calculLatLonPoint(clicDep)
+    sommetDep = None
+    for row in sommets.items():
+        if sommetDep == None or distanceGPS(lat, lon, row["lat"], row["lon"]) < distanceGPS(lat, lon, sommets.loc[sommetDep, "lat"], sommets.loc[sommetDep, "lon"]):
+            sommetsDep = row.index()
+    lat, lon = calculLatLonPoint(clicDep)
+    sommetDep = None
+    for row in sommets.items():
+        if sommetDep == None or distanceGPS(lat, lon, row["lat"], row["lon"]) < distanceGPS(lat, lon, sommets.loc[sommetDep, "lat"], sommets.loc[sommetDep, "lon"]):
+            sommetsDep = row.index()
+        
+            
 
 def distanceGPS(latA, latB, lonA, lonB):
     pi = math.pi
@@ -346,7 +370,6 @@ def main():
     
     win.close()
     
-    print("Je suis arrivé")
 
 
 def effaceChemin():
