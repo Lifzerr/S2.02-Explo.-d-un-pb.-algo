@@ -121,12 +121,11 @@ def choisirArriverDepart():
         if sommetDep == None or distanceGPS(lat, lon, row["lat"], row["lon"]) < distanceGPS(lat, lon, sommets.loc[sommetDep, "lat"], sommets.loc[sommetDep, "lon"]):
             sommetsDep = row.index()
     lat, lon = calculLatLonPoint(clicDep)
-    sommetDep = None
+    sommetArr = None
     for row in sommets.items():
-        if sommetDep == None or distanceGPS(lat, lon, row["lat"], row["lon"]) < distanceGPS(lat, lon, sommets.loc[sommetDep, "lat"], sommets.loc[sommetDep, "lon"]):
-            sommetsDep = row.index()
-        
-            
+        if sommetArr == None or distanceGPS(lat, lon, row["lat"], row["lon"]) < distanceGPS(lat, lon, sommets.loc[sommetArr, "lat"], sommets.loc[sommetArr, "lon"]):
+            sommetArr = row.index()
+    return sommetDep, sommetArr
 
 def distanceGPS(latA, latB, lonA, lonB):
     pi = math.pi
@@ -347,6 +346,9 @@ def main():
     # Afficher l'image, les points et les aretes
     affichageBG()
     affichagePts()
+    
+    # Saisie à la sourie du départ et de l'arrivée
+    choisirArriverDepart()
     
     # Exécuter l'algorithme de Dijkstra
     dijkstra(graphe_transforme, 1806175538, 1801848709)
