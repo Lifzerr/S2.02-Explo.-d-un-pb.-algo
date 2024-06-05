@@ -88,11 +88,7 @@ graphe_transforme = transformer_graphe(dicsuccdist)
 import math
 from math import acos,asin,cos,sin,pi
 
-def choisirArriverDepart():
-    """ But : permettre à l'utilisateur de sélectionner sur la carte son point de départ et d'arrivée. """
-    # Saisie par l'utilisateur du clic de départ
-    clicDep = win.getMouse()
-
+def placerPoint(clicDep):
     x_dep, y_dep = clicDep.getX(), clicDep.getY()
 
     sommetDep = None
@@ -110,27 +106,20 @@ def choisirArriverDepart():
     c.setFill(g.color_rgb(0,0,0))
     c.setWidth(5)
     c.draw(win)
+    return sommetDep
+
+def choisirArriverDepart():
+    """ But : permettre à l'utilisateur de sélectionner sur la carte son point de départ et d'arrivée. """
+    # Saisie par l'utilisateur du clic de départ
+    clicDep = win.getMouse()
+
+    # Placer le point du clic
+    sommetDep = placerPoint(clicDep)
     
     # Saisie par l'utilisateur du clic d'arrivée
     clicArr = win.getMouse()
     
-    x_arr, y_arr = clicArr.getX(), clicArr.getY()
-
-    sommetArr = None
-    min_distance_arr = float('inf')
-
-    # Recherche du sommet le plus proche du clic d'arrivée
-    for index, row in sommets.iterrows():
-        distance_arr = distance(x_arr, y_arr, row["x"], row["y"])
-        if distance_arr < min_distance_arr:
-            min_distance_arr = distance_arr
-            sommetArr = index
-            
-    # Dessiner le sommet d'arrivée
-    c = g.Circle(g.Point(sommets.loc[sommetArr, "x"],sommets.loc[sommetArr, "y"]), 2)
-    c.setFill(g.color_rgb(0,0,0))
-    c.setWidth(5)
-    c.draw(win)
+    sommetArr = placerPoint(clicArr)
 
     return sommetDep, sommetArr
 
@@ -316,7 +305,8 @@ def affichageArcs():
 
 
 def traceArc(point1, point2, color = "black", width = 1):
-    """ But : Afficher l'arc reliant les points point1 & point2 de la couleur color (noir par défaut) avec une ligne d'épaisseur width (par défaut égale à 1) """
+    """ But : Afficher l'arc reliant les points point1 & point2 de la couleur color (noir par défaut) avec une ligne 
+    d'épaisseur width (par défaut égale à 1) """
     
     lat1 = sommets.loc[point1, 'y']
     lon1 = sommets.loc[point1, 'x']
@@ -342,11 +332,9 @@ def affichageBG():
 def affichagePts():
     """ But : Afficher tous les points du dataframe sommets dans la fenêtre """
     for point in sommets.index:
-        # récup & conversion coordonnées
-        lat = sommets.loc[point, 'lat']
-        lon = sommets.loc[point, 'lon']
-        x = (lon - point1[1]) * dim[0] / (point2[1] - point1[1])
-        y = (dim[1] - (lat - point1[0]) * dim[1] / (point2[0] - point1[0]))
+        # récup coordonnées
+        x = sommets.loc[point, 'x']
+        y = sommets.loc[point, 'y']
 
         # Dessiner le points en cours
         c = g.Circle(g.Point(x,y), 2)
